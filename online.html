@@ -6,46 +6,88 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Truco Porteño · Online</title>
 <style>
-:root{font-family:system-ui,-apple-system,sans-serif;background:#092c25;color:#f6f5e8}
+:root{
+  font-family:system-ui,-apple-system,sans-serif;
+  background:#092c25;color:#f6f5e8
+}
 *{box-sizing:border-box}
 body{margin:0}
 main{max-width:740px;margin:auto;padding:20px 14px 80px}
 h1{margin:5px 0;font-size:32px}
 p{color:#c8dbcf}
-.box{background:#16483c;border:1px solid #377664;border-radius:17px;padding:16px;margin:15px 0}
+.box{
+  background:#16483c;border:1px solid #377664;
+  border-radius:17px;padding:16px;margin:15px 0
+}
 .row{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
-button,input{font:inherit;border-radius:11px;padding:12px;border:1px solid #7ba997}
-button{background:#e4b75c;color:#17251e;font-weight:750;cursor:pointer}
+button,input{
+  font:inherit;border-radius:11px;padding:12px;
+  border:1px solid #7ba997
+}
+button{
+  background:#e4b75c;color:#17251e;
+  font-weight:750;cursor:pointer
+}
 button:disabled{opacity:.42;cursor:default}
 .secondary{background:#276354;color:white}
-input{background:#f4f4e9;color:#142e25;max-width:170px;text-transform:uppercase}
+input{
+  background:#f4f4e9;color:#142e25;
+  max-width:170px;text-transform:uppercase
+}
 .muted{font-size:13px;color:#b7d1c1}
-.cards{display:flex;flex-wrap:wrap;gap:8px;min-height:96px;margin:12px 0}
-.card{background:#fffdf1;color:#102b24;border:2px solid #d5c69e;border-radius:10px;min-width:85px;min-height:115px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:14px}
+.cards{
+  display:flex;flex-wrap:wrap;gap:8px;
+  min-height:95px;margin:12px 0
+}
+.card{
+  background:#fffdf1;color:#102b24;
+  border:2px solid #d5c69e;border-radius:10px;
+  min-width:85px;min-height:115px;padding:10px 6px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:6px;font-size:14px
+}
 .card b{font-size:30px}
 .card.red{color:#a33b32}
-.card:disabled{opacity:.6}
+.card:disabled{opacity:.55}
 .back{background:#1f705e;color:white}
 .hidden{display:none!important}
 .score{font-size:23px;font-weight:800}
-.notice{background:#315f4c;border-radius:10px;padding:12px;white-space:pre-line}
-.tag{display:inline-block;padding:4px 8px;border:1px solid #91ac9d;border-radius:7px}
+.notice{
+  background:#315f4c;border-radius:10px;
+  padding:12px;white-space:pre-line;margin:12px 0
+}
+.tag{
+  display:inline-block;padding:4px 8px;
+  border:1px solid #91ac9d;border-radius:7px
+}
 .actions button{margin:3px}
-#log{max-height:150px;overflow:auto;font-size:13px;color:#d0e0d6}
+#log{max-height:170px;overflow:auto;font-size:13px;color:#d0e0d6}
 #log div{padding:4px 0;border-bottom:1px solid #386757}
+.trickResult{
+  padding:14px;border-radius:12px;
+  background:#e4b75c;color:#17251e;
+  font-size:19px;font-weight:800;
+  text-align:center;margin:12px 0
+}
+.history{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.history span{
+  background:#276354;border-radius:8px;
+  padding:7px 10px;font-size:13px
+}
 </style>
 </head>
 <body>
 <main>
 <div class="muted">ARGENTINISCHES KARTENSPIEL</div>
 <h1>🧉 Truco Porteño · Online</h1>
-<p>Spiele mit einem Freund auf zwei iPhones.</p>
+<p>Argentinisches Truco mit einem Freund auf zwei iPhones.</p>
 
 <div id="loading" class="box">Verbindung wird aufgebaut …</div>
 
 <div id="lobby" class="box hidden">
 <h2>Online-Partie</h2>
-<p>Erstelle eine Partie und teile den Code – oder tritt mit dem Code deines Freundes bei.</p>
+<p>Erstelle eine Partie und teile den Code oder tritt einer Partie bei.</p>
 <div class="row">
 <button id="create">Partie erstellen</button>
 <input id="code" maxlength="6" placeholder="6-stelliger Code">
@@ -69,10 +111,17 @@ input{background:#f4f4e9;color:#142e25;max-width:170px;text-transform:uppercase}
 <div class="box">
 <h3>Gegner</h3>
 <div id="opponent" class="cards"></div>
-<h3>Gespielte Karten</h3>
+
+<h3>Aktueller Stich</h3>
 <div id="table" class="cards"></div>
+<div id="result"></div>
+
+<h3>Bisherige Stiche</h3>
+<div id="history" class="history"></div>
+
 <h3>Deine Karten</h3>
 <div id="mine" class="cards"></div>
+
 <div id="info" class="notice"></div>
 <div id="actions" class="actions"></div>
 </div>
@@ -84,13 +133,22 @@ input{background:#f4f4e9;color:#142e25;max-width:170px;text-transform:uppercase}
 </div>
 </div>
 
-<p class="muted">Private Testpartie · Keine Einsätze · Internetverbindung erforderlich.</p>
+<p class="muted">
+Private Testpartie · Keine Einsätze · Internetverbindung erforderlich.
+</p>
 </main>
 
 <script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {getFirestore,doc,setDoc,onSnapshot,runTransaction} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {initializeApp} from
+"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+  getAuth,signInAnonymously,onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+  getFirestore,doc,setDoc,onSnapshot,runTransaction
+} from
+"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyDdjG4xNfGZFpLjF36bnAavJJy_UcPE69Y",
@@ -106,14 +164,19 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 const $=id=>document.getElementById(id);
 
-let uid=null,room=null,seat=-1,game=null,unsub=null,busy=false;
+let uid=null,room=null,seat=-1,game=null;
+let unsub=null,busy=false;
 
 const suits=["espada","basto","oro","copa"];
-const symbols={espada:"⚔️",basto:"🪵",oro:"🪙",copa:"🏆"};
+const symbols={
+  espada:"⚔️",basto:"🪵",oro:"🪙",copa:"🏆"
+};
 const ranks=[1,2,3,4,5,6,7,10,11,12];
 
 function deck(){
-  return suits.flatMap(s=>ranks.map(n=>({id:s+"-"+n,s,n})));
+  return suits.flatMap(s=>
+    ranks.map(n=>({id:s+"-"+n,s,n}))
+  );
 }
 
 function card(id){
@@ -139,12 +202,15 @@ function strength(c){
 }
 
 function envido(hand){
-  let best=Math.max(...hand.map(c=>c.n>=10?0:c.n));
+  let best=Math.max(
+    ...hand.map(c=>c.n>=10?0:c.n)
+  );
   for(const s of suits){
     const a=hand.filter(c=>c.s===s)
       .map(c=>c.n>=10?0:c.n)
       .sort((x,y)=>y-x);
-    if(a.length>=2)best=Math.max(best,20+a[0]+a[1]);
+    if(a.length>=2)
+      best=Math.max(best,20+a[0]+a[1]);
   }
   return best;
 }
@@ -166,8 +232,7 @@ function randomCode(){
   ).join("");
 }
 
-// Firestore erlaubt keine Arrays direkt in Arrays.
-// Deshalb werden die inneren Arrays in Objekte verpackt.
+// Firestore unterstützt keine verschachtelten Arrays.
 function encodeGame(g){
   return {
     ...g,
@@ -195,7 +260,7 @@ function addLog(g,msg){
 
 function newGame(code){
   return {
-    version:1,
+    version:2,
     code,
     players:[uid,null,null,null],
     teams:[0,1,0,1],
@@ -276,10 +341,12 @@ async function join(code){
     const r=doc(db,"games",code);
     await runTransaction(db,async tx=>{
       const s=await tx.get(r);
-      if(!s.exists())throw Error("Raum nicht gefunden.");
+      if(!s.exists())
+        throw Error("Raum nicht gefunden.");
       const g=decodeGame(s.data());
       if(g.players[0]!==uid&&g.players[1]!==uid){
-        if(g.players[1])throw Error("Raum ist voll.");
+        if(g.players[1])
+          throw Error("Raum ist voll.");
         g.players[1]=uid;
         freshHand(g);
         tx.set(r,encodeGame(g));
@@ -297,7 +364,9 @@ function openRoom(code){
   $("lobby").classList.add("hidden");
   $("game").classList.remove("hidden");
   $("room").textContent=code;
+
   if(unsub)unsub();
+
   unsub=onSnapshot(ref(),s=>{
     if(!s.exists()){
       $("status").textContent="Raum nicht gefunden.";
@@ -306,12 +375,14 @@ function openRoom(code){
     game=decodeGame(s.data());
     seat=game.players.indexOf(uid);
     if(seat<0||seat>1){
-      $("status").textContent="Du gehörst nicht zu dieser Partie.";
+      $("status").textContent=
+        "Du gehörst nicht zu dieser Partie.";
       return;
     }
     render();
   },e=>{
-    $("status").textContent="Verbindungsfehler: "+e.message;
+    $("status").textContent=
+      "Verbindungsfehler: "+e.message;
   });
 }
 
@@ -319,13 +390,18 @@ async function mutate(fn){
   if(busy||!game||seat<0)return;
   busy=true;
   render();
+
   try{
     await runTransaction(db,async tx=>{
       const r=ref();
       const s=await tx.get(r);
-      if(!s.exists())throw Error("Raum nicht gefunden.");
+      if(!s.exists())
+        throw Error("Raum nicht gefunden.");
+
       const g=decodeGame(s.data());
-      if(g.players[seat]!==uid)throw Error("Kein Spieler.");
+      if(g.players[seat]!==uid)
+        throw Error("Kein Spieler.");
+
       fn(g);
       tx.set(r,encodeGame(g));
     });
@@ -339,58 +415,96 @@ async function mutate(fn){
 
 function winHand(g,winner,reason){
   g.points[winner]+=g.stake;
-  g.phase=g.points[winner]>=g.target?"finished":"between";
+  g.phase=g.points[winner]>=g.target
+    ?"finished":"between";
   g.turn=-1;
-  addLog(g,"Spieler "+(winner+1)+" gewinnt "+g.stake+" Punkt(e): "+reason);
+  addLog(g,
+    "Spieler "+(winner+1)+" gewinnt "+
+    g.stake+" Punkt(e): "+reason
+  );
 }
 
+// Auswertung unmittelbar nach zwei Karten.
 function checkTrick(g){
   const a=g.played[0],b=g.played[1];
   if(a.length!==b.length||!a.length)return;
+
   const i=a.length-1;
   if(g.tricks.length>i)return;
+
   const x=strength(card(a[i]));
   const y=strength(card(b[i]));
   const winner=x===y?-1:x>y?0:1;
+
   g.tricks.push(winner);
-  addLog(g,"Stich "+(i+1)+": "+(winner<0?"Parda":"Spieler "+(winner+1)));
+  addLog(g,
+    "Stich "+(i+1)+": "+
+    (winner<0?"Parda":"Spieler "+(winner+1))
+  );
 
   const t=g.tricks;
   let w=-1;
+
   if(t.length>=2){
-    if(t[0]>=0&&t[1]===t[0])w=t[0];
-    else if(t[0]<0&&t[1]>=0)w=t[1];
-    else if(t[1]<0&&t[0]>=0)w=t[0];
-    else if(t.length===3){
+    if(t[0]>=0&&t[1]===t[0]){
+      w=t[0];
+    }else if(t[0]<0&&t[1]>=0){
+      w=t[1];
+    }else if(t[1]<0&&t[0]>=0){
+      w=t[0];
+    }else if(t.length===3){
       if(t[2]>=0)w=t[2];
       else if(t[0]>=0)w=t[0];
       else if(t[1]>=0)w=t[1];
       else w=g.handNo%2===1?0:1;
     }
   }
+
   if(w>=0){
     winHand(g,w,"Stiche");
     return;
   }
-  g.lead=winner<0?g.lead:winner;
-  g.turn=g.lead;
+
+  // Neuer Ablauf:
+  // Der Stich wird erst sichtbar abgeschlossen.
+  // Beide Spieler sehen das Resultat.
+  // Danach folgt "Nächster Stich".
+  if(winner>=0)g.lead=winner;
+  g.phase="trickPause";
+  g.turn=-1;
   g.envidoWindow=false;
+}
+
+function nextTrick(){
+  mutate(g=>{
+    if(g.phase!=="trickPause")
+      throw Error("Kein Stichwechsel möglich.");
+
+    g.phase="play";
+    g.turn=g.lead;
+    addLog(g,"Nächster Stich beginnt");
+  });
 }
 
 function play(id){
   mutate(g=>{
     if(g.phase!=="play"||g.pending||g.turn!==seat)
       throw Error("Nicht dein Zug.");
+
     const index=g.hands[seat].indexOf(id);
-    if(index<0)throw Error("Karte nicht vorhanden.");
+    if(index<0)
+      throw Error("Karte nicht vorhanden.");
+
     g.hands[seat].splice(index,1);
     g.played[seat].push(id);
-    g.envidoWindow=false;
+
     addLog(g,"Spieler "+(seat+1)+" spielt "+id);
-    if(g.played[0].length===g.played[1].length)
+
+    if(g.played[0].length===g.played[1].length){
       checkTrick(g);
-    else
+    }else{
       g.turn=other(seat);
+    }
   });
 }
 
@@ -398,22 +512,37 @@ function callTruco(){
   mutate(g=>{
     if(g.phase!=="play"||g.pending||g.turn!==seat)
       throw Error("Nicht möglich.");
-    if(g.trucoLevel>=3)throw Error("Maximal Vale cuatro.");
+
+    if(g.trucoLevel>=3)
+      throw Error("Maximal Vale cuatro.");
+
     if(g.trucoLevel>0&&g.lastTrucoCaller===seat)
       throw Error("Nur der Gegner darf erhöhen.");
-    g.pending={type:"truco",from:seat,level:g.trucoLevel+1};
-    addLog(g,"Spieler "+(seat+1)+" ruft "+
-      ["","Truco","Retruco","Vale cuatro"][g.pending.level]);
+
+    g.pending={
+      type:"truco",
+      from:seat,
+      level:g.trucoLevel+1
+    };
+
+    addLog(g,
+      "Spieler "+(seat+1)+" ruft "+
+      ["","Truco","Retruco","Vale cuatro"][g.pending.level]
+    );
   });
 }
 
 function callEnvido(){
   mutate(g=>{
-    if(g.phase!=="play"||g.pending||g.envidoUsed||
-       !g.envidoWindow||g.played[seat].length>0||g.turn!==seat)
-      throw Error("Envido jetzt nicht möglich.");
+    if(
+      g.phase!=="play"||g.pending||g.envidoUsed||
+      !g.envidoWindow||g.played[seat].length>0||
+      g.turn!==seat
+    )throw Error("Envido jetzt nicht möglich.");
+
     g.pending={type:"envido",from:seat};
     g.envidoUsed=true;
+
     addLog(g,"Spieler "+(seat+1)+" ruft Envido");
   });
 }
@@ -423,7 +552,9 @@ function respond(accept){
     const p=g.pending;
     if(!p||p.from===seat)
       throw Error("Keine Ansage zum Beantworten.");
+
     g.pending=null;
+
     if(p.type==="truco"){
       if(accept){
         g.trucoLevel=p.level;
@@ -432,24 +563,40 @@ function respond(accept){
         addLog(g,"Quiero · Einsatz "+g.stake);
       }else{
         g.points[p.from]+=g.stake;
-        g.phase=g.points[p.from]>=g.target?"finished":"between";
+        g.phase=g.points[p.from]>=g.target
+          ?"finished":"between";
         g.turn=-1;
-        addLog(g,"No quiero · Spieler "+(p.from+1)+" erhält "+g.stake+" Punkt(e)");
+        addLog(g,
+          "No quiero · Spieler "+(p.from+1)+
+          " erhält "+g.stake+" Punkt(e)"
+        );
       }
     }else{
       if(accept){
         const a=envido(g.initial[0]);
         const b=envido(g.initial[1]);
-        const winner=a===b?(g.handNo%2===1?0:1):(a>b?0:1);
+
+        const winner=a===b
+          ?(g.handNo%2===1?0:1)
+          :(a>b?0:1);
+
         g.points[winner]+=2;
-        addLog(g,"Envido: "+a+" : "+b+" · Spieler "+(winner+1)+" gewinnt 2 Punkte");
+
+        addLog(g,
+          "Envido: "+a+" : "+b+
+          " · Spieler "+(winner+1)+" gewinnt 2 Punkte"
+        );
+
         if(g.points[winner]>=g.target){
           g.phase="finished";
           g.turn=-1;
         }
       }else{
         g.points[p.from]++;
-        addLog(g,"No quiero · Spieler "+(p.from+1)+" erhält 1 Punkt");
+        addLog(g,
+          "No quiero · Spieler "+(p.from+1)+
+          " erhält 1 Punkt"
+        );
         if(g.points[p.from]>=g.target){
           g.phase="finished";
           g.turn=-1;
@@ -470,62 +617,110 @@ function fold(){
 
 function nextHand(){
   mutate(g=>{
-    if(g.phase!=="between")throw Error("Hand läuft noch.");
+    if(g.phase!=="between")
+      throw Error("Hand läuft noch.");
     freshHand(g);
   });
 }
 
 function cardHTML(id){
   const c=card(id);
-  return `<div class="card ${c.s==="oro"||c.s==="copa"?"red":""}">
-    <b>${c.n}</b>${symbols[c.s]} ${c.s}</div>`;
+  return `<div class="card ${
+    c.s==="oro"||c.s==="copa"?"red":""
+  }"><b>${c.n}</b>${symbols[c.s]} ${c.s}</div>`;
 }
 
 function escapeHTML(x){
   return String(x).replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",
-    '"':"&quot;","'":"&#39;"
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   }[c]));
+}
+
+// Nur die Karten des aktuellen Stichs anzeigen.
+function currentCard(g,i){
+  const n=g.tricks.length;
+
+  if(g.phase==="trickPause"||
+     g.phase==="between"||
+     g.phase==="finished"){
+    return g.played[i][n-1]||null;
+  }
+
+  return g.played[i][n]||null;
 }
 
 function render(){
   if(!game||seat<0)return;
   const g=game;
+
   $("seat").textContent="Spieler "+(seat+1);
-  $("scores").textContent="Du "+g.points[seat]+" : "+
+  $("scores").textContent=
+    "Du "+g.points[seat]+" : "+
     g.points[other(seat)]+" Gegner";
-  $("handNo").textContent="Hand "+g.handNo+
-    " · Ziel "+g.target+" · Einsatz "+g.stake;
+
+  $("handNo").textContent=
+    "Hand "+g.handNo+
+    " · Ziel "+g.target+
+    " · Einsatz "+g.stake;
 
   $("opponent").innerHTML=g.phase==="waiting"
     ?"Warte auf zweiten Spieler …"
-    :Array.from({length:g.hands[other(seat)].length},
-      ()=>'<div class="card back"><b>🧉</b>Verdeckt</div>').join("");
+    :Array.from(
+      {length:g.hands[other(seat)].length},
+      ()=>'<div class="card back"><b>🧉</b>Verdeckt</div>'
+    ).join("");
 
   $("mine").innerHTML=g.hands[seat].map(id=>{
     const c=card(id);
-    const disabled=busy||g.phase!=="play"||
+    const disabled=
+      busy||g.phase!=="play"||
       g.turn!==seat||g.pending;
-    return `<button class="card ${c.s==="oro"||c.s==="copa"?"red":""}"
-      data-card="${id}" ${disabled?"disabled":""}>
-      <b>${c.n}</b>${symbols[c.s]} ${c.s}</button>`;
+
+    return `<button class="card ${
+      c.s==="oro"||c.s==="copa"?"red":""
+    }" data-card="${id}" ${
+      disabled?"disabled":""
+    }><b>${c.n}</b>${symbols[c.s]} ${c.s}</button>`;
   }).join("");
 
   document.querySelectorAll("[data-card]").forEach(el=>{
     el.onclick=()=>play(el.dataset.card);
   });
 
-  $("table").innerHTML=[0,1].map(i=>`
-    <div style="flex:1;min-width:120px">
-      <div class="muted">${i===seat?"Du":"Gegner"}</div>
-      <div class="cards">${g.played[i].map(cardHTML).join("")}</div>
-    </div>`).join("");
+  // Aktueller Stich statt aller Karten nebeneinander.
+  $("table").innerHTML=[seat,other(seat)].map(i=>{
+    const id=currentCard(g,i);
+    return `
+      <div style="flex:1;min-width:120px">
+        <div class="muted">${i===seat?"Du":"Gegner"}</div>
+        <div class="cards">
+          ${id?cardHTML(id):
+            '<div class="muted">Noch keine Karte</div>'}
+        </div>
+      </div>`;
+  }).join("");
 
-  $("log").innerHTML=(g.log||[]).slice().reverse()
-    .map(x=>"<div>"+escapeHTML(x)+"</div>").join("");
+  // Historische Stiche in kompakter Übersicht.
+  $("history").innerHTML=g.tricks.length
+    ?g.tricks.map((w,i)=>{
+      const text=w<0?"Unentschieden":
+        w===seat?"Du gewinnst":"Gegner gewinnt";
+      return `<span>Stich ${i+1}: ${text}</span>`;
+    }).join("")
+    :'<span>Noch kein Stich beendet</span>';
+
+  $("log").innerHTML=(g.log||[])
+    .slice().reverse()
+    .map(x=>"<div>"+escapeHTML(x)+"</div>")
+    .join("");
 
   const actions=$("actions");
   actions.innerHTML="";
+
   function button(label,fn,secondary=false){
     const b=document.createElement("button");
     b.textContent=label;
@@ -536,43 +731,99 @@ function render(){
   }
 
   let status="",info="";
+  let result="";
+
   if(g.phase==="waiting"){
     status="Warte auf deinen Freund …";
     info="Teile den Raumcode oder Einladungslink.";
+
   }else if(g.phase==="finished"){
     const w=g.points[0]>=g.target?0:1;
-    status=w===seat?"🏆 Du hast gewonnen!":"Partie beendet.";
+    status=w===seat
+      ?"🏆 Du hast gewonnen!"
+      :"Partie beendet.";
     info="Endstand "+g.points[0]+" : "+g.points[1];
+
   }else if(g.phase==="between"){
     status="Hand beendet";
+    const w=g.tricks[g.tricks.length-1];
+    if(w>=0){
+      result=w===seat
+        ?"🏆 Letzter Stich: Du gewinnst!"
+        :"Letzter Stich: Gegner gewinnt";
+    }
     info="Die nächste Hand kann gestartet werden.";
     button("Nächste Hand",nextHand);
+
+  }else if(g.phase==="trickPause"){
+    const w=g.tricks[g.tricks.length-1];
+    const n=g.tricks.length;
+
+    status="Stich "+n+" beendet";
+
+    result=w<0
+      ?"🤝 Unentschieden (Parda)"
+      :w===seat
+        ?"🏆 Du gewinnst diesen Stich!"
+        :"Der Gegner gewinnt diesen Stich.";
+
+    info=w<0
+      ?"Bei Gleichstand bleibt der bisherige Ausspieler am Zug."
+      :(w===seat
+        ?"Du darfst den nächsten Stich eröffnen."
+        :"Der Gegner eröffnet den nächsten Stich.");
+
+    button("Nächster Stich",nextTrick);
+
   }else if(g.pending){
     const p=g.pending;
-    status=p.from===seat?"Warte auf Antwort …":"Bitte antworten";
+    status=p.from===seat
+      ?"Warte auf Antwort …"
+      :"Bitte antworten";
+
     info=p.type==="truco"
       ?["","Truco!","Retruco!","Vale cuatro!"][p.level]
       :"Envido!";
+
     if(p.from!==seat){
       button("Quiero ✓",()=>respond(true));
       button("No quiero ✕",()=>respond(false),true);
     }
+
   }else{
-    status=g.turn===seat?"Du bist am Zug":"Gegner ist am Zug";
-    info="Stich "+(g.tricks.length+1)+" von maximal 3.";
+    status=g.turn===seat
+      ?"Du bist am Zug"
+      :"Gegner ist am Zug";
+
+    info="Stich "+(g.tricks.length+1)+
+      " von maximal 3.";
+
     if(g.turn===seat){
       if(g.trucoLevel<3&&
-         (g.trucoLevel===0||g.lastTrucoCaller!==seat))
-        button(["","Truco","Retruco","Vale cuatro"]
-          [g.trucoLevel+1],callTruco);
-      if(!g.envidoUsed&&g.envidoWindow&&
-         g.played[seat].length===0)
+         (g.trucoLevel===0||
+          g.lastTrucoCaller!==seat)){
+        button(
+          ["","Truco","Retruco","Vale cuatro"]
+          [g.trucoLevel+1],
+          callTruco
+        );
+      }
+
+      if(!g.envidoUsed&&
+         g.envidoWindow&&
+         g.played[seat].length===0){
         button("Envido",callEnvido);
+      }
+
       button("Me voy al mazo",fold,true);
     }
   }
+
   $("status").textContent=status;
   $("info").textContent=info;
+  $("result").innerHTML=result
+    ?'<div class="trickResult">'+result+'</div>'
+    :"";
 }
 
 function showLobby(){
@@ -581,6 +832,7 @@ function showLobby(){
   room=null;
   game=null;
   seat=-1;
+
   $("game").classList.add("hidden");
   $("lobby").classList.remove("hidden");
 }
@@ -589,7 +841,9 @@ $("create").onclick=create;
 $("join").onclick=()=>join($("code").value);
 
 $("copy").onclick=async()=>{
-  const url=location.origin+location.pathname+"#"+room;
+  const url=
+    location.origin+location.pathname+"#"+room;
+
   try{
     await navigator.clipboard.writeText(url);
     $("copy").textContent="Kopiert ✓";
@@ -605,10 +859,13 @@ $("leave").onclick=()=>{
 
 onAuthStateChanged(auth,async user=>{
   if(!user)return;
+
   uid=user.uid;
   $("loading").classList.add("hidden");
   $("lobby").classList.remove("hidden");
+
   const code=location.hash.slice(1).toUpperCase();
+
   if(/^[A-Z2-9]{6}$/.test(code)){
     $("code").value=code;
     await join(code);
@@ -616,7 +873,8 @@ onAuthStateChanged(auth,async user=>{
 });
 
 signInAnonymously(auth).catch(e=>{
-  $("loading").textContent="Anmeldung fehlgeschlagen: "+e.message;
+  $("loading").textContent=
+    "Anmeldung fehlgeschlagen: "+e.message;
 });
 </script>
 </body>
