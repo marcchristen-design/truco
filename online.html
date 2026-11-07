@@ -6,7 +6,21 @@ import {getFirestore,doc,getDoc,setDoc,updateDoc,onSnapshot,runTransaction,serve
 const config={apiKey:'AIzaSyDdjG4xNfGZFpLjF36bnAavJJy_UcPE69Y',authDomain:'truco-porteno.firebaseapp.com',projectId:'truco-porteno',storageBucket:'truco-porteno.firebasestorage.app',messagingSenderId:'644772919018',appId:'1:644772919018:web:16789e7591a4ba863f0993'};
 const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app);const $=id=>document.getElementById(id);let uid=null,room=null,seat=-1,game=null,unsub=null,busy=false;
 const suits=['espada','basto','oro','copa'],symbols={espada:'⚔️',basto:'🪵',oro:'🪙',copa:'🏆'},ranks=[1,2,3,4,5,6,7,10,11,12];const deck=()=>suits.flatMap(s=>ranks.map(n=>({id:s+'-'+n,s,n})));const strength=c=>{if(c.n===1&&c.s==='espada')return 14;if(c.n===1&&c.s==='basto')return 13;if(c.n===7&&c.s==='espada')return 12;if(c.n===7&&c.s==='oro')return 11;if(c.n===3)return 10;if(c.n===2)return 9;if(c.n===1)return 8;if(c.n===12)return 7;if(c.n===11)return 6;if(c.n===10)return 5;if(c.n===7)return 4;if(c.n===6)return 3;if(c.n===5)return 2;return 1};const value=c=>c.n>=10?0:c.n;function envido(hand){let best=Math.max(...hand.map(value));for(const s of suits){const a=hand.filter(c=>c.s===s).map(value).sort((x,y)=>y-x);if(a.length>=2)best=Math.max(best,20+a[0]+a[1]);}return best}
-const shuffled=()=>{let d=deck();for(let i=d.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d};const card=id=>{let [s,n]=id.split('-');return {id,s,n:Number(n)}};const cardHtml=id=>{let c=card(id);return `<div class="card ${c.s==='oro'||c.s==='copa'?'red':''}"><b>${c.n}</b><span>${symbols[c.s]} ${c.s}</span></div>`};const randomCode=()=>Array.from(crypto.getRandomValues(new Uint8Array(6)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%32]).join('');const ref=()=>doc(db,'games',room);const isMember=g=>g.players.includes(uid);const other=i=>1-i;const playerName=i=>i===seat?'Du':'Gegner';const log=(g,msg)=>{g.log=[...(g.log||[]),msg].slice(-18)};
+const shuffled=()=>{let d=deck();for(let i=d.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d};const card=id=>{let [s,n]=id.split('-');return {id,s,n:Number(n)}};const cardHtml=id=>{let c=card(id);return `<div class="card ${c.s==='oro'||c.s==='copa'?'red':''}"><b>${c.n}</b><span>${symbols[c.s]} ${c.s}</span></div>`};const randomCode=()=>Array.from(crypto.getRandomValues(new Uint8Array(6)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%32]).join('');
+const encodeGame = g => ({
+  ...g,
+  hands: g.hands.map(cards => ({ cards })),
+  initial: g.initial.map(cards => ({ cards })),
+  played: g.played.map(cards => ({ cards }))
+});
+
+const decodeGame = g => ({
+  ...g,
+  hands: g.hands.map(x => x.cards),
+  initial: g.initial.map(x => x.cards),
+  played: g.played.map(x => x.cards)
+});
+const ref=()=>doc(db,'games',room);const isMember=g=>g.players.includes(uid);const other=i=>1-i;const playerName=i=>i===seat?'Du':'Gegner';const log=(g,msg)=>{g.log=[...(g.log||[]),msg].slice(-18)};
 function freshHand(g){let d=shuffled();g.hands=[d.slice(0,3).map(c=>c.id),d.slice(3,6).map(c=>c.id)];g.initial=g.hands.map(h=>h.map(card));g.played=[[],[]];g.tricks=[];g.turn=g.handNo%2===1?0:1;g.lead=g.turn;g.phase='play';g.pending=null;g.stake=1;g.trucoLevel=0;g.lastTrucoCaller=-1;g.envidoUsed=false;g.envidoStake=0;g.envidoCaller=-1;g.envidoResolved=false;g.envidoWindow=true;g.handWinner=-1;g.handNo++;log(g,'Neue Hand '+g.handNo+' · '+(g.turn===0?'Spieler 1':'Spieler 2')+' beginnt')}
 function newGame(code){let g={version:1,code,players:[uid,null,null,null],teams:[0,1,0,1],activeSeats:2,points:[0,0],target:15,handNo:0,phase:'waiting',hands:[[],[]],initial:[[],[]],played:[[],[]],tricks:[],turn:0,lead:0,pending:null,stake:1,trucoLevel:0,lastTrucoCaller:-1,envidoUsed:false,envidoResolved:false,envidoWindow:true,log:['Partie erstellt. Warte auf Mitspieler.'],createdAt:Date.now()};return g}
 function setError(e){$('lobbyError').textContent=e?.message||String(e)}function showLobby(){if(unsub)unsub();unsub=null;room=null;game=null;$('game').classList.add('hidden');$('lobby').classList.remove('hidden')}
